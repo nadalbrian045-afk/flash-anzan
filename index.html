@@ -50,8 +50,11 @@ html, body { background: #000; min-height: 100vh; display: flex; align-items: ce
   .btn { font-size: 5vw !important; padding: 6% 0 !important; }
   .mode-card { grid-column: 1 / -1; }
 
-  #minus-sign { font-size: 38vw !important; }
-  #number-display { font-size: 38vw !important; }
+  #minus-sign {
+    font-size: 22vw !important;
+    left: calc(50% - 22vw * 1.15) !important;
+  }
+  #number-display { font-size: 22vw !important; max-width: 90vw; overflow: hidden; }
 
   .ans-label { font-size: 5vw !important; }
   #answer-input { font-size: 19vw !important; }
@@ -103,9 +106,21 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
 #spinner-arc { fill:none; stroke:#00ff41; stroke-width:5; stroke-linecap:round; stroke-dasharray:339.3; stroke-dashoffset:339.3; }
 
 #flash-screen { align-items:center; justify-content:center; }
-#number-row { display:flex; align-items:center; justify-content:center; flex:1; width:100%; }
-#minus-sign { font-size:clamp(80px,38vw,420px); font-weight:500; color:#00ff41; line-height:1; display:none; font-family:'Abacus2',monospace; }
-#number-display { font-size:clamp(80px,38vw,420px); font-weight:500; color:#00ff41; line-height:1; letter-spacing:2px; font-variant-numeric:tabular-nums; font-family:'Abacus2',monospace; }
+#number-row { position:relative; display:flex; align-items:center; justify-content:center; flex:1; width:100%; }
+#minus-sign {
+  position:absolute;
+  left: calc(50% - clamp(80px,20vw,220px) * 1.15);
+  font-size:clamp(80px,20vw,220px);
+  font-weight:500; color:#00ff41; line-height:1; display:none;
+  font-family:'Abacus2','Courier New',monospace;
+}
+#number-display {
+  font-size:clamp(80px,20vw,220px);
+  font-weight:500; color:#00ff41; line-height:1;
+  letter-spacing:2px; font-variant-numeric:tabular-nums;
+  font-family:'Abacus2','Courier New',monospace;
+  text-align:center;
+}
 
 #answer-screen { align-items:center; justify-content:center; gap:0; }
 .ans-label { color:#00aa22; font-size:clamp(16px,3.5vw,40px); margin-bottom:2%; letter-spacing:1px; font-weight:500; text-align:center; }
