@@ -51,6 +51,7 @@ html, body { background: #000; min-height: 100vh; display: flex; align-items: ce
   .btn { font-size: 5vw !important; padding: 6% 0 !important; }
   .mode-card { grid-column: 1 / -1; }
 
+  #minus-sign { font-size: 22vw !important; }
   #number-display { font-size: 22vw !important; max-width: 90vw; overflow: hidden; }
 
   .ans-label { font-size: 5vw !important; }
@@ -104,6 +105,13 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
 
 #flash-screen { align-items:center; justify-content:center; }
 #number-row { position:relative; display:flex; align-items:center; justify-content:center; flex:1; width:100%; }
+#minus-sign {
+  font-size:clamp(80px,20vw,220px);
+  font-weight:500; color:#00ff41; line-height:1;
+  font-family:'Abacus2','Courier New',monospace;
+  visibility:hidden;
+  flex-shrink:0;
+}
 #number-display {
   font-size:clamp(80px,20vw,220px);
   font-weight:500; color:#00ff41; line-height:1;
@@ -157,7 +165,7 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
   </div>
 
   <div id="flash-screen" class="screen">
-    <div id="number-row"><span id="number-display">　</span></div>
+    <div id="number-row"><span id="minus-sign">−</span><span id="number-display">　</span></div>
   </div>
 
   <div id="answer-screen" class="screen">
@@ -212,10 +220,10 @@ function startCountdown(){
 function startFlash(){showScreen('flash-screen');flashNext();}
 function flashNext(){
   if(currentIdx>=numbers.length){showAnswerScreen();return;}
-  const ms=Math.round(cachedSpeedSec*1000),numEl=document.getElementById('number-display');
+  const ms=Math.round(cachedSpeedSec*1000),numEl=document.getElementById('number-display'),minusEl=document.getElementById('minus-sign');
   const isMinus=currentIdx>0&&operators[currentIdx-1]==='-';
-  numEl.textContent=(isMinus?'−':'')+numbers[currentIdx];currentIdx++;
-  setTimeout(()=>{numEl.textContent='　';setTimeout(flashNext,50);},ms);
+  minusEl.style.visibility=isMinus?'visible':'hidden';numEl.textContent=numbers[currentIdx];currentIdx++;
+  setTimeout(()=>{numEl.textContent='　';minusEl.style.visibility='hidden';setTimeout(flashNext,50);},ms);
 }
 function showAnswerScreen(){
   showScreen('answer-screen');
