@@ -190,9 +190,19 @@ function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classL
 function goSettings(){showScreen('settings-screen');}
 function randInt(d){const mn=Math.pow(10,d-1),mx=Math.pow(10,d)-1;return Math.floor(Math.random()*(mx-mn+1))+mn;}
 function generateNumbers(count,digits,allowSub){
-  const nums=[],ops=[];nums.push(randInt(digits));let running=nums[0];
-  for(let i=1;i<count;i++){let op='+',n=randInt(digits);if(allowSub&&Math.random()<0.5&&running-n>=0){op='-';running-=n;}else{running+=n;}nums.push(n);ops.push(op);}
-  return{nums,ops,answer:running};
+  while(true){
+    const nums=[],ops=[];nums.push(randInt(digits));let running=nums[0];
+    let hasMinus=false;
+    for(let i=1;i<count;i++){
+      const isLast=i===count-1;
+      let op='+',n=randInt(digits);
+      const canSub=running-n>=0;
+      if(allowSub&&canSub&&(Math.random()<0.5||(isLast&&!hasMinus))){op='-';running-=n;hasMinus=true;}
+      else{running+=n;}
+      nums.push(n);ops.push(op);
+    }
+    if(!allowSub||hasMinus)return{nums,ops,answer:running};
+  }
 }
 function beginSession(){
   totalQuestions=Math.max(1,parseInt(document.getElementById('qcount').value)||1);
