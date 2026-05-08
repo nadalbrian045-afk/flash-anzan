@@ -273,7 +273,7 @@ function flashNext(){
 function showAnswerScreen(){
   showScreen('answer-screen');
   document.getElementById('ans-progress-label').textContent=totalQuestions>1?('第 '+currentQuestion+' / '+totalQuestions+' 問　答えを入力してください'):'答えを入力してください';
-  const inp=document.getElementById('answer-input');inp.value='';setTimeout(()=>inp.focus(),100);
+  const inp=document.getElementById('answer-input');inp.value='';inp.style.fontSize='';setTimeout(()=>inp.focus(),100);
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
@@ -300,6 +300,11 @@ function checkAnswer(){
   showScreen('result-screen');
 }
 function restartNew(){currentQuestion=0;sessionCorrect=0;nextQuestion(false);}
+document.getElementById('answer-input').addEventListener('input',function(){
+  var d=this.value.replace('-','').length||1;
+  if(d<=4){this.style.fontSize='';}
+  else{var s=4/d;this.style.fontSize='clamp(40px,'+(19*s).toFixed(1)+'vw,'+Math.round(210*s)+'px)';}
+});
 </script>
 </body>
 </html>
