@@ -4,6 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>フラッシュ暗算</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FLASH ANZAN">
+<meta name="theme-color" content="#000000">
+<script>(function(){
+  var S=512,c=document.createElement('canvas');
+  c.width=c.height=S;
+  var x=c.getContext('2d');
+  // 黒背景
+  x.fillStyle='#000000';x.fillRect(0,0,S,S);
+  // 緑グロー
+  x.shadowColor='#00ff41';x.shadowBlur=S*0.06;
+  // ▶ 三角形（重心をキャンバス中央に）
+  x.fillStyle='#00ff41';
+  var rh=S*0.30,rv=S*0.33,xl=S/2-2*rh/3,xr=S/2+4*rh/3,cy=S/2;
+  x.beginPath();x.moveTo(xl,cy-rv);x.lineTo(xr,cy);x.lineTo(xl,cy+rv);x.closePath();x.fill();
+  var u=c.toDataURL('image/png');
+  // apple-touch-icon（iOS ホーム画面）
+  var a=document.createElement('link');a.rel='apple-touch-icon';a.href=u;document.head.appendChild(a);
+  // favicon
+  var f=document.createElement('link');f.rel='icon';f.type='image/png';f.href=u;document.head.appendChild(f);
+  // Web App Manifest（Android）
+  var m=JSON.stringify({name:'フラッシュ暗算',short_name:'FLASH ANZAN',display:'standalone',background_color:'#000000',theme_color:'#000000',icons:[{src:u,sizes:'512x512',type:'image/png'}]});
+  var b=new Blob([m],{type:'application/manifest+json'});
+  var ml=document.createElement('link');ml.rel='manifest';ml.href=URL.createObjectURL(b);document.head.appendChild(ml);
+})();</script>
 <style>
 @font-face {
   font-family: 'Abacus2';
