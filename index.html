@@ -85,7 +85,10 @@ html, body { background: #000; min-height: 100vh; display: flex; align-items: ce
 
   .ans-label { font-size: 5vw !important; }
   #answer-input { font-size: 19vw !important; }
-  .ans-btn { font-size: 5vw !important; }
+  .ans-btn { display: none !important; }
+  #answer-screen { justify-content: flex-start !important; padding-top: 5vw; }
+  .ans-input-wrap { flex: none !important; height: 22vw !important; margin-bottom: 2vw; }
+  #numpad { display: flex !important; }
 
   #r-icon { font-size: 20vw !important; }
   #r-correct { font-size: 16vw !important; }
@@ -157,10 +160,14 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
 #answer-screen { align-items:center; justify-content:center; gap:0; }
 .ans-label { color:#00aa22; font-size:clamp(16px,3.5vw,40px); margin-bottom:2%; letter-spacing:1px; font-weight:500; text-align:center; }
 .ans-input-wrap { width:90%; display:flex; align-items:center; justify-content:center; flex:1; }
-#answer-input { background:#000; border:3px solid #00ff41; border-radius:12px; color:#00ff41; font-family:'Abacus2',monospace; font-size:clamp(40px,19vw,210px); font-weight:500; text-align:center; width:100%; height:100%; padding:1% 2%; outline:none; line-height:1.1; -moz-appearance:textfield; display:block; }
-#answer-input::-webkit-outer-spin-button, #answer-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+#answer-input { background:#000; border:3px solid #00ff41; border-radius:12px; color:#00ff41; font-family:'Abacus2',monospace; font-size:clamp(40px,19vw,210px); font-weight:500; text-align:center; width:100%; height:100%; padding:1% 2%; outline:none; line-height:1.1; display:block; caret-color: transparent; }
 #answer-input:focus { box-shadow:0 0 0 4px #002200; }
 .ans-btn { margin-top:2%; width:60%; font-size:clamp(14px,2.5vw,26px); padding:2% 0; }
+#numpad { display:none; flex-direction:column; gap:2vw; width:90%; margin-top:3vw; }
+.numpad-row { display:flex; gap:2vw; }
+.numpad-btn { flex:1; background:#001100; border:2px solid #00ff41; border-radius:8px; color:#00ff41; font-family:'Abacus2',monospace; font-size:clamp(18px,7vw,56px); font-weight:500; padding:3vw 0; text-align:center; cursor:pointer; -webkit-tap-highlight-color:transparent; user-select:none; touch-action:manipulation; }
+.numpad-btn:active { background:#003300; }
+.numpad-btn-confirm { background:#003300 !important; font-size:clamp(14px,5.5vw,44px) !important; }
 
 #result-screen { align-items:center; justify-content:center; flex:1; }
 .result-main { display:flex; flex-direction:column; align-items:center; justify-content:center; flex:1; width:100%; gap:3%; }
@@ -204,8 +211,33 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
 
   <div id="answer-screen" class="screen">
     <div class="ans-label" id="ans-progress-label">答えを入力してください</div>
-    <div class="ans-input-wrap"><input type="number" id="answer-input" placeholder="？"></div>
+    <div class="ans-input-wrap"><input type="text" inputmode="none" id="answer-input" placeholder="？" autocomplete="off"></div>
     <button class="btn ans-btn" onclick="checkAnswer()">決定 [Enter]</button>
+    <div id="numpad">
+      <div class="numpad-row">
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('7')">7</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('8')">8</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('9')">9</button>
+      </div>
+      <div class="numpad-row">
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('4')">4</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('5')">5</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('6')">6</button>
+      </div>
+      <div class="numpad-row">
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('1')">1</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('2')">2</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('3')">3</button>
+      </div>
+      <div class="numpad-row">
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('-')">−</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('0')">0</button>
+        <button class="numpad-btn" ontouchstart="event.preventDefault();numpadInput('back')">⌫</button>
+      </div>
+      <div class="numpad-row">
+        <button class="numpad-btn numpad-btn-confirm" ontouchstart="event.preventDefault();checkAnswer()">決定</button>
+      </div>
+    </div>
   </div>
 
   <div id="result-screen" class="screen">
@@ -217,6 +249,10 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
 <script>
 function stepInput(id,dir){const el=document.getElementById(id);const stepAttr=el.getAttribute('step');const step=stepAttr?parseFloat(stepAttr):1;const min=parseFloat(el.min);const max=parseFloat(el.max);const decimals=stepAttr&&stepAttr.includes('.')?stepAttr.split('.')[1].length:0;let val=parseFloat((parseFloat(el.value)+dir*step).toFixed(decimals+4));val=parseFloat(val.toFixed(decimals));val=Math.max(min,Math.min(max,val));el.value=decimals>0?val.toFixed(decimals):String(Math.round(val));}
 let numbers=[],operators=[],currentIdx=0,countdownRaf=null,cachedSpeedSec=0.5;
+let audioCtx=null;
+function _getACtx(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();return audioCtx;}
+function playTsuu(){try{const ctx=_getACtx(),osc=ctx.createOscillator(),g=ctx.createGain();osc.connect(g);g.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(880,ctx.currentTime);g.gain.setValueAtTime(0.25,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.65);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.65);}catch(e){}}
+function playPu(){try{const ctx=_getACtx(),osc=ctx.createOscillator(),g=ctx.createGain();osc.connect(g);g.connect(ctx.destination);osc.type='sine';osc.frequency.setValueAtTime(1100,ctx.currentTime);g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.12);osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.12);}catch(e){}}
 let savedNumbers=[],savedOperators=[],savedAnswer=0;
 let totalQuestions=1,currentQuestion=0,sessionCorrect=0;
 let sessionCount=5,sessionDigits=2,sessionAllowSub=false;
@@ -240,6 +276,7 @@ function generateNumbers(count,digits,allowSub){
   }
 }
 function beginSession(){
+  _getACtx();
   totalQuestions=Math.max(1,parseInt(document.getElementById('qcount').value)||1);
   sessionCount=Math.max(2,parseInt(document.getElementById('count').value)||5);
   sessionDigits=Math.min(4,Math.max(1,parseInt(document.getElementById('digits').value)||2));
@@ -258,22 +295,43 @@ function startCountdown(){
   document.getElementById('progress-indicator').textContent=totalQuestions>1?('第 '+currentQuestion+' / '+totalQuestions+' 問'):'';
   showScreen('countdown-screen');
   const arc=document.getElementById('spinner-arc'),C=339.3;
-  arc.style.strokeDashoffset=C;let t0=null;
-  function animate(ts){if(!t0)t0=ts;const el=ts-t0;if(el>=2000){arc.style.strokeDashoffset=0;setTimeout(startFlash,80);return;}arc.style.strokeDashoffset=C*(1-(el%1000)/1000);countdownRaf=requestAnimationFrame(animate);}
+  arc.style.strokeDashoffset=C;let t0=null;const soundPlayed=[false,false];
+  function animate(ts){if(!t0)t0=ts;const el=ts-t0;const rot=el<1000?0:1;if(!soundPlayed[rot]){soundPlayed[rot]=true;playTsuu();}if(el>=2000){arc.style.strokeDashoffset=0;setTimeout(startFlash,80);return;}arc.style.strokeDashoffset=C*(1-(el%1000)/1000);countdownRaf=requestAnimationFrame(animate);}
   countdownRaf=requestAnimationFrame(animate);
 }
 function startFlash(){showScreen('flash-screen');flashNext();}
 function flashNext(){
   if(currentIdx>=numbers.length){showAnswerScreen();return;}
+  playPu();
   const ms=Math.round(cachedSpeedSec*1000),numEl=document.getElementById('number-display'),minusEl=document.getElementById('minus-sign');
   const isMinus=currentIdx>0&&operators[currentIdx-1]==='-';
   minusEl.style.visibility=isMinus?'visible':'hidden';numEl.textContent=numbers[currentIdx];currentIdx++;
   setTimeout(()=>{numEl.textContent='　';minusEl.style.visibility='hidden';setTimeout(flashNext,50);},ms);
 }
+var _numpadVal='';
+function _adjustAnswerFont(inp){
+  var d=inp.value.replace(/[^0-9]/g,'').length||1;
+  if(d<=4){inp.style.fontSize='';}
+  else{var s=4/d;inp.style.fontSize='clamp(40px,'+(19*s).toFixed(1)+'vw,'+Math.round(210*s)+'px)';}
+}
+function numpadInput(key){
+  const inp=document.getElementById('answer-input');
+  if(key==='back'){
+    _numpadVal=_numpadVal.slice(0,-1);
+  }else if(key==='-'){
+    _numpadVal=_numpadVal.startsWith('-')?_numpadVal.slice(1):'-'+_numpadVal;
+  }else{
+    if(_numpadVal==='0')_numpadVal=key;
+    else if(_numpadVal.replace('-','').length<10)_numpadVal+=key;
+  }
+  inp.value=_numpadVal;
+  _adjustAnswerFont(inp);
+}
 function showAnswerScreen(){
   showScreen('answer-screen');
   document.getElementById('ans-progress-label').textContent=totalQuestions>1?('第 '+currentQuestion+' / '+totalQuestions+' 問　答えを入力してください'):'答えを入力してください';
-  const inp=document.getElementById('answer-input');inp.value='';inp.style.fontSize='';setTimeout(()=>inp.focus(),100);
+  const inp=document.getElementById('answer-input');inp.value='';inp.style.fontSize='';_numpadVal='';
+  if(window.innerWidth>600)setTimeout(()=>inp.focus(),100);
 }
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter')return;
@@ -301,9 +359,8 @@ function checkAnswer(){
 }
 function restartNew(){currentQuestion=0;sessionCorrect=0;nextQuestion(false);}
 document.getElementById('answer-input').addEventListener('input',function(){
-  var d=this.value.replace('-','').length||1;
-  if(d<=4){this.style.fontSize='';}
-  else{var s=4/d;this.style.fontSize='clamp(40px,'+(19*s).toFixed(1)+'vw,'+Math.round(210*s)+'px)';}
+  if(window.innerWidth>600){_numpadVal=this.value;}
+  _adjustAnswerFont(this);
 });
 </script>
 </body>
