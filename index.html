@@ -157,6 +157,12 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
   text-align:center;
 }
 
+#info-screen { align-items:center; justify-content:center; gap:5%; }
+.info-row { display:flex; align-items:baseline; gap:clamp(16px,4vw,48px); }
+.info-item { display:flex; align-items:baseline; gap:0.15em; }
+.info-num { font-family:'Abacus2','Courier New',monospace; font-size:clamp(48px,10vw,120px); font-weight:500; color:#00ff41; line-height:1; }
+.info-unit { font-family:'Courier New',monospace; font-size:clamp(20px,4vw,48px); font-weight:500; color:#00ff41; }
+
 #answer-screen { align-items:center; justify-content:center; gap:0; }
 .ans-label { color:#00aa22; font-size:clamp(16px,3.5vw,40px); margin-bottom:2%; letter-spacing:1px; font-weight:500; text-align:center; }
 .ans-input-wrap { width:90%; display:flex; align-items:center; justify-content:center; flex:1; }
@@ -188,12 +194,14 @@ h1 { font-size: clamp(20px,4vw,42px); font-weight: 500; color: #00ff41; text-ali
     <div class="settings-grid">
       <div class="setting-card"><div class="setting-label">口数（個）</div><div class="setting-input-wrap"><input type="number" class="setting-input" id="count" min="2" max="30" value="5"><div class="step-btns"><button class="step-btn" onclick="stepInput('count',1)">▲</button><button class="step-btn" onclick="stepInput('count',-1)">▼</button></div></div><div class="setting-hint">2 〜 30</div></div>
       <div class="setting-card"><div class="setting-label">桁数</div><div class="setting-input-wrap"><input type="number" class="setting-input" id="digits" min="1" max="4" value="2"><div class="step-btns"><button class="step-btn" onclick="stepInput('digits',1)">▲</button><button class="step-btn" onclick="stepInput('digits',-1)">▼</button></div></div><div class="setting-hint">1 〜 4</div></div>
-      <div class="setting-card"><div class="setting-label">合計表示時間（秒）</div><div class="setting-input-wrap"><input type="number" class="setting-input" id="totaltime" min="0.10" max="99.99" value="2.50" step="0.01"><div class="step-btns"><button class="step-btn" onclick="stepInput('totaltime',1)">▲</button><button class="step-btn" onclick="stepInput('totaltime',-1)">▼</button></div></div><div class="setting-hint">0.10 〜 99.99秒</div></div>
+      <div class="setting-card"><div class="setting-label">合計表示時間（秒）</div><div class="setting-input-wrap"><input type="number" class="setting-input" id="totaltime" min="1.50" max="99.99" value="2.50" step="0.01"><div class="step-btns"><button class="step-btn" onclick="stepInput('totaltime',1)">▲</button><button class="step-btn" onclick="stepInput('totaltime',-1)">▼</button></div></div><div class="setting-hint">1.50 〜 99.99秒</div></div>
       <div class="setting-card"><div class="setting-label">問題数</div><div class="setting-input-wrap"><input type="number" class="setting-input" id="qcount" min="1" max="99" value="1"><div class="step-btns"><button class="step-btn" onclick="stepInput('qcount',1)">▲</button><button class="step-btn" onclick="stepInput('qcount',-1)">▼</button></div></div><div class="setting-hint">1 〜 99問</div></div>
       <div class="mode-card"><div class="setting-label">演算モード</div><div class="toggle-row"><span class="toggle-label">加算のみ</span><label class="toggle"><input type="checkbox" id="subtraction"><span class="toggle-slider"></span></label><span class="toggle-label">加減算</span></div></div>
       <div style="display:flex;flex-direction:column;justify-content:center;"><button class="btn" onclick="beginSession()">▶ スタート</button></div>
     </div>
   </div>
+
+  <div id="info-screen" class="screen"></div>
 
   <div id="countdown-screen" class="screen">
     <div id="progress-indicator"></div>
@@ -277,13 +285,26 @@ function generateNumbers(count,digits,allowSub){
 }
 function beginSession(){
   _getACtx();
-  totalQuestions=Math.max(1,parseInt(document.getElementById('qcount').value)||1);
-  sessionCount=Math.max(2,parseInt(document.getElementById('count').value)||5);
-  sessionDigits=Math.min(4,Math.max(1,parseInt(document.getElementById('digits').value)||2));
-  const totalTime=Math.max(0.10,parseFloat(document.getElementById('totaltime').value)||2.5);
+  function clampField(id,min,max,decimals){const el=document.getElementById(id);let v=decimals?parseFloat(el.value)||min:parseInt(el.value)||min;v=Math.max(min,Math.min(max,v));el.value=decimals?v.toFixed(decimals):String(v);return v;}
+  totalQuestions=clampField('qcount',1,99,0);
+  sessionCount=clampField('count',2,30,0);
+  sessionDigits=clampField('digits',1,4,0);
+  const totalTime=clampField('totaltime',1.50,99.99,2);
   sessionAllowSub=document.getElementById('subtraction').checked;
   cachedSpeedSec=totalTime/sessionCount;
-  currentQuestion=0;sessionCorrect=0;nextQuestion(false);
+  currentQuestion=0;sessionCorrect=0;
+  showInfoThenNext(false);
+}
+function showInfoThenNext(useSaved){
+  var t=(cachedSpeedSec*sessionCount).toFixed(2);
+  document.getElementById('info-screen').innerHTML=
+    '<div class="info-row">'
+    +'<div class="info-item"><span class="info-num">'+sessionDigits+'</span><span class="info-unit">桁</span></div>'
+    +'<div class="info-item"><span class="info-num">'+sessionCount+'</span><span class="info-unit">口</span></div>'
+    +'<div class="info-item"><span class="info-num">'+t+'</span><span class="info-unit">秒</span></div>'
+    +'</div>';
+  showScreen('info-screen');
+  setTimeout(()=>nextQuestion(useSaved),2000);
 }
 function nextQuestion(useSaved){
   currentQuestion++;
@@ -303,7 +324,7 @@ function startFlash(){showScreen('flash-screen');flashNext();}
 function flashNext(){
   if(currentIdx>=numbers.length){showAnswerScreen();return;}
   playPu();
-  const ms=Math.round(cachedSpeedSec*1000),numEl=document.getElementById('number-display'),minusEl=document.getElementById('minus-sign');
+  const ms=Math.max(10,Math.round(cachedSpeedSec*1000-50)),numEl=document.getElementById('number-display'),minusEl=document.getElementById('minus-sign');
   const isMinus=currentIdx>0&&operators[currentIdx-1]==='-';
   minusEl.style.visibility=isMinus?'visible':'hidden';numEl.textContent=numbers[currentIdx];currentIdx++;
   setTimeout(()=>{numEl.textContent='　';minusEl.style.visibility='hidden';setTimeout(flashNext,50);},ms);
@@ -334,9 +355,16 @@ function showAnswerScreen(){
   if(window.innerWidth>600)setTimeout(()=>inp.focus(),100);
 }
 document.addEventListener('keydown',e=>{
-  if(e.key!=='Enter')return;
-  if(document.getElementById('answer-screen').classList.contains('active'))checkAnswer();
-  else if(document.getElementById('result-screen').classList.contains('active')){const nb=document.getElementById('next-btn');if(nb)nb.click();}
+  const onResult=document.getElementById('result-screen').classList.contains('active');
+  if(e.key==='Enter'){
+    if(document.getElementById('answer-screen').classList.contains('active'))checkAnswer();
+    else if(onResult){const nb=document.getElementById('next-btn');if(nb)nb.click();}
+  }
+  if(onResult&&window.innerWidth>600){
+    if(e.key==='F1'){e.preventDefault();showInfoThenNext(true);}
+    else if(e.key==='F2'){e.preventDefault();restartNew();}
+    else if(e.key==='F3'){e.preventDefault();goSettings();}
+  }
 });
 function checkAnswer(){
   const userAnswer=parseInt(document.getElementById('answer-input').value),correct=window._answer,ok=userAnswer===correct;
@@ -353,11 +381,12 @@ function checkAnswer(){
     wrap.innerHTML='<button class="btn" id="next-btn" onclick="nextQuestion(false)">次の問題へ [Enter]</button>';
   }else{
     wrap.className='result-btns-3';
-    wrap.innerHTML='<button class="btn" onclick="nextQuestion(true)">同じ問題をもう一度</button><button class="btn btn-dim" onclick="restartNew()">同じ設定で新しい問題</button><button class="btn btn-dim" onclick="goSettings()">設定を変える</button>';
+    const kb=window.innerWidth>600;
+    wrap.innerHTML='<button class="btn" onclick="showInfoThenNext(true)">同じ問題をもう一度'+(kb?' [F1]':'')+'</button><button class="btn btn-dim" onclick="restartNew()">同じ設定で新しい問題'+(kb?' [F2]':'')+'</button><button class="btn btn-dim" onclick="goSettings()">設定を変える'+(kb?' [F3]':'')+'</button>';
   }
   showScreen('result-screen');
 }
-function restartNew(){currentQuestion=0;sessionCorrect=0;nextQuestion(false);}
+function restartNew(){currentQuestion=0;sessionCorrect=0;showInfoThenNext(false);}
 document.getElementById('answer-input').addEventListener('input',function(){
   if(window.innerWidth>600){_numpadVal=this.value;}
   _adjustAnswerFont(this);
